@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser'
-import { SCENE_KEYS, EVENT_KEYS } from '../constants'
+import { SCENE_KEYS, EVENT_KEYS, px } from '../constants'
+import { DPR } from '@/engine'
 import { KIDS } from '../data/kids'
 import { useEventBus } from '@/runtime'
 
@@ -23,27 +24,27 @@ export class EndingScene extends Phaser.Scene {
     this.cameras.main.fadeIn(1200)
 
     this.add.text(width / 2, height * 0.22, '这首歌的名字，', {
-      fontSize: '36px', color: '#f0e6ff', fontFamily: 'sans-serif',
+      fontSize: px(36), color: '#f0e6ff', fontFamily: 'sans-serif',
     }).setOrigin(0.5)
 
     this.add.text(width / 2, height * 0.33, '叫做"我们"。', {
-      fontSize: '36px', color: '#f0e6ff', fontFamily: 'sans-serif',
+      fontSize: px(36), color: '#f0e6ff', fontFamily: 'sans-serif',
     }).setOrigin(0.5)
 
     let yOff = height * 0.5
     for (const kid of KIDS) {
       this.add.text(width / 2, yOff, `${kid.emoji} ${kid.name}：${kid.keyword}`, {
-        fontSize: '24px', color: '#c9b6ff', fontFamily: 'sans-serif',
+        fontSize: px(24), color: '#c9b6ff', fontFamily: 'sans-serif',
       }).setOrigin(0.5)
-      yOff += 44
+      yOff += Math.round(44 * DPR)
     }
 
-    this.add.text(width / 2, yOff + 20, `总分：${this.score}`, {
-      fontSize: '28px', color: '#FFD700', fontFamily: 'monospace',
+    this.add.text(width / 2, yOff + Math.round(20 * DPR), `总分：${this.score}`, {
+      fontSize: px(28), color: '#FFD700', fontFamily: 'monospace',
     }).setOrigin(0.5)
 
-    this.add.text(width / 2, height - 60, '按任意键重新演出', {
-      fontSize: '20px', color: '#888888', fontFamily: 'sans-serif',
+    this.add.text(width / 2, height - Math.round(60 * DPR), '按任意键重新演出', {
+      fontSize: px(20), color: '#888888', fontFamily: 'sans-serif',
     }).setOrigin(0.5)
 
     this.input.on('pointerdown', () => this.restart())

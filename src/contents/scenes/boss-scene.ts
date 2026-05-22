@@ -1,6 +1,7 @@
 import { SCENE_KEYS, GAME_CONFIG } from '../constants'
 import { RhythmScene } from './rhythm-scene'
 import type { RhythmSceneInitData } from './rhythm-scene'
+import type { ChartData } from '../composables/useCharts'
 
 export class BossScene extends RhythmScene {
   constructor() {
@@ -8,12 +9,12 @@ export class BossScene extends RhythmScene {
   }
 
   init(_data: RhythmSceneInitData): void {
-    super.init({ chartId: 'boss', kidId: 'huimi', isBoss: true })
+    super.init({ chartKey: 'ensemble', kidId: 'huimi', isBoss: true })
   }
 
-  protected getBossWaveform(defaultWaveform: OscillatorType, now: number, duration: number): OscillatorType {
+  protected getWaveform(chart: ChartData, now: number): OscillatorType {
     const waveforms = GAME_CONFIG.AUDIO.BOSS_WAVEFORMS
-    const ratio = now / duration
+    const ratio = now / chart.duration
     if (ratio < 1 / 3) return waveforms[0]
     if (ratio < 2 / 3) return waveforms[1]
     return waveforms[2]

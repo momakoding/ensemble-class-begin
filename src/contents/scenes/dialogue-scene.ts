@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser'
-import { SCENE_KEYS, ASSET_KEYS, EVENT_KEYS } from '../constants'
+import { SCENE_KEYS, ASSET_KEYS, EVENT_KEYS, px } from '../constants'
+import { DPR } from '@/engine'
 import { KIDS } from '../data/kids'
 import type { KidId } from '../data/kids'
 import { useEventBus } from '@/runtime'
@@ -25,33 +26,33 @@ export class DialogueScene extends Phaser.Scene {
     const { width, height } = this.scale
     const kid = KIDS.find(k => k.id === this.kidId)!
 
-    this.add.image(width / 2, height / 2, ASSET_KEYS.CLASSROOM_BG)
+    this.add.image(width / 2, height / 2, ASSET_KEYS.CLASSROOM_BG).setDisplaySize(width, height)
 
     this.add.image(width / 2, height * 0.28, ASSET_KEYS.KID_AVATAR).setScale(1.4)
-    this.add.text(width / 2, height * 0.28, kid.emoji, { fontSize: '64px' }).setOrigin(0.5)
-    this.add.text(width / 2, height * 0.28 + 80, kid.name, {
-      fontSize: '24px', color: '#e0c890', fontFamily: 'sans-serif', fontStyle: 'bold',
+    this.add.text(width / 2, height * 0.28, kid.emoji, { fontSize: px(64) }).setOrigin(0.5)
+    this.add.text(width / 2, height * 0.28 + Math.round(80 * DPR), kid.name, {
+      fontSize: px(24), color: '#e0c890', fontFamily: 'sans-serif', fontStyle: 'bold',
     }).setOrigin(0.5)
 
     const boxY = height * 0.62
     const boxW = width * 0.72
-    const boxH = 130
+    const boxH = Math.round(130 * DPR)
     const boxX = width / 2
 
     const box = this.add.graphics()
     box.fillStyle(0x000000, 0.75)
-    box.fillRoundedRect(boxX - boxW / 2, boxY - boxH / 2, boxW, boxH, 12)
-    box.lineStyle(2, 0x9966ff, 0.8)
-    box.strokeRoundedRect(boxX - boxW / 2, boxY - boxH / 2, boxW, boxH, 12)
+    box.fillRoundedRect(boxX - boxW / 2, boxY - boxH / 2, boxW, boxH, Math.round(12 * DPR))
+    box.lineStyle(Math.round(2 * DPR), 0x9966ff, 0.8)
+    box.strokeRoundedRect(boxX - boxW / 2, boxY - boxH / 2, boxW, boxH, Math.round(12 * DPR))
     void box
 
     this.dialogText = this.add.text(boxX, boxY, '', {
-      fontSize: '22px', color: '#f0f0f0', fontFamily: 'sans-serif',
-      wordWrap: { width: boxW - 40 }, align: 'center',
+      fontSize: px(22), color: '#f0f0f0', fontFamily: 'sans-serif',
+      wordWrap: { width: boxW - Math.round(40 * DPR) }, align: 'center',
     }).setOrigin(0.5)
 
-    this.promptText = this.add.text(boxX + boxW / 2 - 20, boxY + boxH / 2 - 16, '▶', {
-      fontSize: '16px', color: '#9966ff',
+    this.promptText = this.add.text(boxX + boxW / 2 - Math.round(20 * DPR), boxY + boxH / 2 - Math.round(16 * DPR), '▶', {
+      fontSize: px(16), color: '#9966ff',
     }).setOrigin(1, 1)
 
     this.showLine()
@@ -76,12 +77,12 @@ export class DialogueScene extends Phaser.Scene {
       this.dialogText.setText('')
       this.promptText.setVisible(false)
       this.add.text(width / 2, height * 0.62, `演奏"${kid.keyword}"`, {
-        fontSize: '26px', color: '#ffffff',
+        fontSize: px(26), color: '#ffffff',
         backgroundColor: '#7c3aed',
-        padding: { x: 20, y: 10 },
+        padding: { x: Math.round(20 * DPR), y: Math.round(10 * DPR) },
         fontFamily: 'sans-serif',
       }).setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', () => {
-        this.scene.start(SCENE_KEYS.RHYTHM, { chartId: kid.chartId, kidId: this.kidId })
+        this.scene.start(SCENE_KEYS.RHYTHM, { chartKey: kid.id, kidId: this.kidId })
       })
     }
   }

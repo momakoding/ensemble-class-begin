@@ -6,6 +6,10 @@
  *   - engine/ 不应 import 本文件（engine 若需要 fallback，走自己的 SHELL_DEFAULTS）。
  *   - runtime/ 不直接 import 具体事件 Key，业务层（scenes / pages）才用。
  */
+import { DPR } from '@/engine'
+
+/** 将像素数值转为按 DPR 缩放后的 Phaser font size 字符串 */
+export const px = (n: number) => `${Math.round(n * DPR)}px`
 
 // ---- 场景 Key ----
 export const SCENE_KEYS = {
@@ -23,6 +27,7 @@ export const EVENT_KEYS = {
   GAME_RESTART: 'game:restart',
   GAME_PAUSE: 'game:pause',
   GAME_RESUME: 'game:resume',
+  GAME_RETURN_CLASSROOM: 'game:return-classroom',
   KID_COMPLETED: 'kid:completed',
   BOSS_COMPLETED: 'boss:completed',
   RHYTHM_HIT: 'rhythm:hit',
@@ -43,13 +48,13 @@ export const ASSET_KEYS = {
 
 // ---- 游戏配置 ----
 export const GAME_CONFIG = {
-  WIDTH: 1280,
-  HEIGHT: 720,
+  WIDTH: Math.round(1280 * DPR),
+  HEIGHT: Math.round(720 * DPR),
   RHYTHM: {
     LANE_COUNT: 4,
     LANE_KEYS: ['D', 'F', 'J', 'K'],
     NOTE_FALL_TIME: 1.6,
-    JUDGE_LINE_Y: 600,
+    JUDGE_LINE_Y: Math.round(600 * DPR),
     PERFECT_WINDOW: 0.08,
     GOOD_WINDOW: 0.16,
     SCORE_PERFECT: 100,

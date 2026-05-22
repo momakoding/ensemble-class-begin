@@ -2,13 +2,10 @@
   <div class="game-page">
     <!-- Phaser 画布挂载点（撑满视口让 Scale.FIT 有空间填充） -->
     <div ref="gameContainer" class="game-page__canvas">
-      <!-- Vue HUD 层：仅 score / combo / progress，judge 在 Phaser 层 -->
+      <!-- Vue HUD 层：右上角记分板，judge 在 Phaser 层 -->
       <div class="game-page__hud">
-        <div class="game-page__hud-right">
-          <span v-if="combo > 1" class="game-page__combo">{{ combo }}x</span>
-          <span v-if="score > 0" class="game-page__score">{{ score }}</span>
-          <span v-if="kidProgress" class="game-page__progress">{{ kidProgress }}</span>
-        </div>
+        <span v-if="combo > 1" class="game-page__combo">{{ combo }}x</span>
+        <span v-if="score > 0" class="game-page__score">{{ score }}</span>
       </div>
     </div>
 
@@ -18,6 +15,7 @@
         <div class="game-page__pause-panel">
           <h2 class="game-page__pause-title">⏸ 游戏暂停</h2>
           <button class="game-page__resume-btn" @click="resumeGame">继续游戏</button>
+          <button class="game-page__classroom-btn" @click="returnToClassroom">返回教室</button>
           <RouterLink to="/" class="game-page__exit-btn">退出到主页</RouterLink>
         </div>
       </div>
@@ -35,6 +33,8 @@ import {
   EVENT_KEYS,
 } from '@/contents'
 import { useEventBus, useGame } from '@/runtime'
+import { useCharts } from '@/contents/composables/useCharts'
+import { KIDS } from '@/contents/data/kids'
 
 const gameContainer = ref<HTMLDivElement>()
 const eventBus = useEventBus()
@@ -55,6 +55,13 @@ const pauseGame = () => {
 const resumeGame = () => {
   isPaused.value = false
   eventBus.emit(EVENT_KEYS.GAME_RESUME)
+}
+
+const returnToClassroom = () => {
+  isPaused.value = false
+  score.value = 0
+  combo.value = 0
+  eventBus.emit(EVENT_KEYS.GAME_RETURN_CLASSROOM)
 }
 
 const onKeyDown = (e: KeyboardEvent) => {
@@ -92,6 +99,8 @@ onMounted(() => {
   eventBus.on(EVENT_KEYS.BOSS_COMPLETED, onBossCompleted)
   window.addEventListener('keydown', onKeyDown)
 
+  useCharts().loadAllCharts(KIDS)
+
   game.initGame(gameContainer.value, BootScene)
   game.addScenes([ClassroomScene, DialogueScene, RhythmScene, BossScene, EndingScene])
 })
@@ -118,47 +127,42 @@ onUnmounted(() => {
 }
 
 .game-page__hud {
-  @apply pointer-events-none absolute top-0 right-0 left-0 z-10 flex items-center justify-between px-4 py-2;
-}
-
-.game-page__hud-left {
-  @apply flex items-center gap-3;
-}
-
-.game-page__hud-right {
-  @apply flex items-center;
+  @apply pointer-events-none absolute top-3 right-4 z-10 flex flex-col items-end gap-1;
 }
 
 .game-page__score {
-  @apply text-xl font-bold text-yellow-300;
+  @apply text-2xl font-bold text-yellow-300 tabular-nums;
 }
 
 .game-page__combo {
-  @apply text-lg font-bold text-green-300;
-}
-
-.game-page__progress {
-  @apply text-sm text-text-primary/70;
+  @apply text-base font-bold text-green-300;
 }
 
 .game-page__overlay {
-  @apply absolute inset-0 z-20 flex items-center justify-center bg-overlay-scrim/60 backdrop-blur-sm;
+  @apply absolute inset-0 z-20 flex items-center justify-center bg-overlay-scrim/70 backdrop-blur-md;
 }
 
 .game-page__pause-panel {
-  @apply flex flex-col items-center gap-4 rounded-xl bg-bg-surface/90 p-8 text-text-primary;
+  @apply flex flex-col items-center gap-3 rounded-2xl border border-border-subtle bg-bg-surface/95
+         px-10 py-8 text-text-primary shadow-2xl min-w-[260px];
 }
 
 .game-page__pause-title {
-  @apply text-2xl font-bold;
+  @apply w-full pb-3 text-center text-2xl font-bold border-b border-border-subtle;
 }
 
 .game-page__resume-btn {
-  @apply rounded-lg bg-success px-6 py-2 text-lg transition hover:bg-success-light;
+  @apply w-full rounded-lg bg-accent px-6 py-2.5 text-base font-semibold text-text-dark
+         transition hover:bg-accent-light active:scale-95;
+}
+
+.game-page__classroom-btn {
+  @apply w-full rounded-lg bg-bg-overlay px-6 py-2.5 text-sm font-medium text-text-primary
+         transition hover:bg-border-subtle active:scale-95;
 }
 
 .game-page__exit-btn {
-  @apply rounded-lg bg-game-border px-6 py-2 text-sm transition hover:bg-text-muted;
+  @apply mt-1 text-sm text-text-muted underline-offset-2 transition hover:text-text-primary hover:underline;
 }
 
 .game-page__pause-trigger {

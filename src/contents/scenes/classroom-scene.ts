@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser'
-import { SCENE_KEYS, ASSET_KEYS, EVENT_KEYS } from '../constants'
+import { SCENE_KEYS, ASSET_KEYS, EVENT_KEYS, px } from '../constants'
+import { DPR } from '@/engine'
 import { KIDS } from '../data/kids'
 import type { KidId } from '../data/kids'
 import { useEventBus } from '@/runtime'
@@ -21,18 +22,19 @@ export class ClassroomScene extends Phaser.Scene {
   create(): void {
     const { width, height } = this.scale
 
-    this.add.image(width / 2, height / 2, ASSET_KEYS.CLASSROOM_BG)
+    this.add.image(width / 2, height / 2, ASSET_KEYS.CLASSROOM_BG).setDisplaySize(width, height)
 
-    this.add.text(width / 2, 40, '合奏课', {
-      fontSize: '48px', color: '#5a3800', fontFamily: 'sans-serif', fontStyle: 'bold',
+    this.add.text(width / 2, Math.round(40 * DPR), '合奏课', {
+      fontSize: px(48), color: '#5a3800', fontFamily: 'sans-serif', fontStyle: 'bold',
     }).setOrigin(0.5, 0)
 
     // Teacher
     const charY = height * 0.78
-    this.add.image(140, charY, ASSET_KEYS.TEACHER_AVATAR)
-    this.add.text(140, charY, '🧑‍🏫', { fontSize: '48px' }).setOrigin(0.5)
-    this.add.text(140, charY + 60, '老师', {
-      fontSize: '18px', color: '#5a3800', fontFamily: 'sans-serif',
+    const teacherX = Math.round(140 * DPR)
+    this.add.image(teacherX, charY, ASSET_KEYS.TEACHER_AVATAR)
+    this.add.text(teacherX, charY, '🧑‍🏫', { fontSize: px(48) }).setOrigin(0.5)
+    this.add.text(teacherX, charY + Math.round(60 * DPR), '老师', {
+      fontSize: px(18), color: '#5a3800', fontFamily: 'sans-serif',
     }).setOrigin(0.5)
 
     // Students
@@ -43,13 +45,13 @@ export class ClassroomScene extends Phaser.Scene {
       const y = charY
 
       const avatar = this.add.image(x, y, ASSET_KEYS.KID_AVATAR).setInteractive({ useHandCursor: true })
-      this.add.text(x, y, kid.emoji, { fontSize: '48px' }).setOrigin(0.5)
-      this.add.text(x, y + 60, kid.name, {
-        fontSize: '20px', color: '#5a3800', fontFamily: 'sans-serif',
+      this.add.text(x, y, kid.emoji, { fontSize: px(48) }).setOrigin(0.5)
+      this.add.text(x, y + Math.round(60 * DPR), kid.name, {
+        fontSize: px(20), color: '#5a3800', fontFamily: 'sans-serif',
       }).setOrigin(0.5)
 
       if (this.completed.has(kid.id)) {
-        this.add.text(x + 36, y - 44, '✓', { fontSize: '28px', color: '#2a8800' }).setOrigin(0.5)
+        this.add.text(x + Math.round(36 * DPR), y - Math.round(44 * DPR), '✓', { fontSize: px(28), color: '#2a8800' }).setOrigin(0.5)
         avatar.setAlpha(0.6)
       } else {
         avatar.on('pointerdown', () => {
@@ -61,8 +63,8 @@ export class ClassroomScene extends Phaser.Scene {
     }
 
     // Progress
-    this.add.text(width - 20, 20, `已采集素材 ${this.completed.size} / 3`, {
-      fontSize: '20px', color: '#5a3800', fontFamily: 'sans-serif',
+    this.add.text(width - Math.round(20 * DPR), Math.round(20 * DPR), `已采集素材 ${this.completed.size} / 3`, {
+      fontSize: px(20), color: '#5a3800', fontFamily: 'sans-serif',
     }).setOrigin(1, 0)
 
     if (this.completed.size === 3) {
@@ -79,15 +81,15 @@ export class ClassroomScene extends Phaser.Scene {
 
   private showBossButton(): void {
     const { width, height } = this.scale
-    const btn = this.add.text(width / 2, height - 80, '🎼 上台演奏', {
-      fontSize: '32px', color: '#ffffff',
+    const btn = this.add.text(width / 2, height - Math.round(80 * DPR), '🎼 上台演奏', {
+      fontSize: px(32), color: '#ffffff',
       backgroundColor: '#7c3aed',
-      padding: { x: 24, y: 12 },
+      padding: { x: Math.round(24 * DPR), y: Math.round(12 * DPR) },
       fontFamily: 'sans-serif',
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })
 
     btn.on('pointerdown', () => {
-      this.scene.start(SCENE_KEYS.BOSS, { chartId: 'boss', kidId: 'huimi', isBoss: true })
+      this.scene.start(SCENE_KEYS.BOSS, { chartKey: 'ensemble', kidId: 'huimi', isBoss: true })
     })
     btn.on('pointerover', () => btn.setAlpha(0.8))
     btn.on('pointerout', () => btn.setAlpha(1))
