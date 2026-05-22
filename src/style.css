@@ -1,0 +1,84 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  /* ── 滚动条（原有） ── */
+  --color-game-border: var(--color-slate-600);
+  --color-scrollbar-thumb: var(--color-slate-700);
+
+  /* ── 页面背景 ── */
+  --color-bg-page: var(--color-slate-900);      /* 全局页面底色 */
+  --color-bg-surface: var(--color-slate-800);   /* 卡片/面板底色 */
+  --color-bg-overlay: var(--color-gray-900);    /* 游戏画布区底色 */
+
+  /* ── 强调色 ── */
+  --color-accent: var(--color-orange-600);      /* 主按钮、主标题 */
+  --color-accent-light: var(--color-orange-500); /* hover 态 */
+  --color-accent-dim: var(--color-orange-700);  /* 按下态 */
+
+  /* ── 次要按钮 ── */
+  --color-btn-secondary-bg: var(--color-stone-50);       /* 乳白底色 */
+  --color-btn-secondary-bg-hover: var(--color-stone-100); /* hover 底色 */
+  --color-btn-secondary-bg-active: var(--color-stone-200);  /* 按下底色 */
+  --color-btn-secondary-border: var(--color-stone-400);  /* 边框 */
+  --color-btn-secondary-border-hover: var(--color-stone-600); /* hover 边框 */
+  --color-btn-secondary-text: var(--color-stone-700);    /* 文字 */
+  --color-btn-secondary-text-hover: var(--color-stone-900); /* hover 文字 */
+
+  /* ── 文字 ── */
+  --color-text-primary: var(--color-slate-100);
+  --color-text-secondary: var(--color-slate-400);
+  --color-text-muted: var(--color-slate-500);
+  --color-text-dark: var(--color-slate-900);    /* 亮色按钮上的深色对比文字 */
+
+  /* ── 边框 ── */
+  --color-border-subtle: var(--color-slate-700); /* 卡片边框 */
+
+  /* ── 功能色 ── */
+  --color-danger: var(--color-red-600);         /* 危险/重启按钮 */
+  --color-danger-light: var(--color-red-500);   /* 危险 hover 态 */
+  --color-success: var(--color-green-600);      /* 继续/确认按钮 */
+  --color-success-light: var(--color-green-500); /* 确认 hover 态 */
+
+  /* ── 遮罩 / 玻璃效果 ── */
+  --color-overlay-scrim: var(--color-black);    /* 遮罩背景（配合 /60 等透明度） */
+  --color-glass: var(--color-white);            /* 玻璃按钮表面（配合 /10 /20 等透明度） */
+
+  /* ── 文字（极端亮度） ── */
+  --color-text-bright: var(--color-white);      /* hover 态全亮文字 */
+}
+
+/* ── 全局可复用 utility ── */
+@utility game-tag {
+  @apply rounded-md border border-(--color-border-subtle)/50 bg-(--color-bg-surface)/40 px-2 py-0.5 text-xs text-(--color-text-muted);
+}
+
+@layer components {
+  .scrollable {
+    @apply overflow-y-auto;
+    scrollbar-gutter: stable;
+  }
+
+  .scrollable::-webkit-scrollbar {
+    @apply w-2 h-1.5;
+  }
+
+  .scrollable::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollable::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    @apply rounded-full;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  .scrollable::-webkit-scrollbar-thumb:hover {
+    @apply bg-game-border;
+  }
+
+  .scrollable::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}

@@ -1,0 +1,6 @@
+export * from './boot-scene'
+export * from './classroom-scene'
+export * from './dialogue-scene'
+export * from './rhythm-scene'
+export * from './boss-scene'
+export * from './ending-scene'
