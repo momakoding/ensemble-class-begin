@@ -2,6 +2,7 @@
 
 One line per change that touches `src/` or project structure. Newest at the top.
 
+- **2026-05-23** — 合奏模式全音播放：`NoteData` 新增 `chordPitches` 字段；`buildEnsemble` 将每个声部组（低音部 / 高音部）的所有音高写入对应谱面音符，`buildSingleVoice` 同步补齐字段；`rhythm-scene.ts` 命中时遍历 `chordPitches` 逐个 `playNote`，保持谱面轨道不变的同时还原完整和声。
 - **2026-05-23** — 修复编译错误：`RhythmScene` 构造函数参数 `key` 加显式 `string` 类型注解，解决 `BossScene` 传入 `"BossScene"` 时 TS2345 字面量类型不匹配。
 - **2026-05-23** — HiDPI（DPR）全量适配：`engine/game-shell/defaults.ts` 新增 `DPR` 常量（`devicePixelRatio` 取最大值 2）；`constants.ts` 引入 `DPR` 并对 `GAME_CONFIG.WIDTH/HEIGHT/JUDGE_LINE_Y` 做 DPR 缩放，新增 `px()` 辅助函数将像素值转为 Phaser font size 字符串；`boot-scene.ts` 所有贴图生成尺寸改用 DPR；`rhythm-scene.ts`、`classroom-scene.ts`、`dialogue-scene.ts`、`ending-scene.ts` 的所有硬编码像素值（轨道坐标、文字位置、判定线等）改用 `Math.round(n * DPR)` / `px()`；背景图加 `.setDisplaySize(width, height)` 铺满画布。
 - **2026-05-23** — 以 MIDI 文件替换硬编码谱面：删除 `src/contents/data/charts.ts`；新增 `src/contents/assets/midi/`（`1.mid` / `2.mid` / `3.mid` 对应三个小孩，`ensemble.mid` 合奏关）；新增 `src/contents/composables/useCharts.ts`，包含浏览器端 MIDI 解析器（支持 Running Status / VLQ / meta 事件）、单声部映射（音高排名→轨道）、合奏双声部分离（largest-gap voice splitting，左手→轨道 0/1、右手→轨道 2/3）；`kids.ts` 的 `chartId` 字段改为 `midiFile`（Vite `?url` 导入）+ `waveform`；`game.vue` 启动时调用 `useCharts().loadAllCharts(KIDS)` 预加载。
