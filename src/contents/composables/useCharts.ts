@@ -6,6 +6,7 @@ export interface NoteData {
   time: number
   lane: 0 | 1 | 2 | 3
   pitch: number
+  chordPitches: number[]
 }
 
 export interface ChartData {
@@ -131,7 +132,7 @@ function buildSingleVoice(notes: RawNote[], tps: number, bpm: number, waveform: 
   const chartNotes: NoteData[] = notes.map(raw => {
     const rank = unique.indexOf(raw.pitch)
     const lane = Math.min(3, Math.floor((rank / n) * 4)) as 0 | 1 | 2 | 3
-    return { time: raw.startTick / tps + START_OFFSET, lane, pitch: raw.pitch }
+    return { time: raw.startTick / tps + START_OFFSET, lane, pitch: raw.pitch, chordPitches: [raw.pitch] }
   })
   const last = chartNotes.at(-1)
   return { bpm, duration: last ? last.time + 2 : 30, waveform, notes: chartNotes }
@@ -155,7 +156,7 @@ function buildEnsemble(notes: RawNote[], tps: number, bpm: number): ChartData {
     groups.set(note.startTick, g)
   }
 
-  type VoiceNote = { tick: number; pitch: number; voice: 'left' | 'right' }
+  type VoiceNote = { tick: number; pitch: number; chordPitches: number[]; voice: 'left' | 'right' }
   const voiceNotes: VoiceNote[] = []
 
   // 追踪各手最近一次音高，用于单音归手判断
@@ -169,7 +170,7 @@ function buildEnsemble(notes: RawNote[], tps: number, bpm: number): ChartData {
       // 单音：归入音高差更小的那只手
       const p = asc[0].pitch
       const voice = Math.abs(p - lastRight) <= Math.abs(p - lastLeft) ? 'right' : 'left'
-      voiceNotes.push({ tick, pitch: p, voice })
+      voiceNotes.push({ tick, pitch: p, chordPitches: [p], voice })
       if (voice === 'right') lastRight = p; else lastLeft = p
     } else {
       // 多音：找最大相邻音程缺口，缺口上方 = 右手，下方 = 左手
@@ -182,15 +183,16 @@ function buildEnsemble(notes: RawNote[], tps: number, bpm: number): ChartData {
       const leftGroup  = asc.slice(0, splitIdx + 1)         // 低音部
       const rightGroup = asc.slice(splitIdx + 1)             // 高音部
 
-      // 左手取最低音（根音），右手取最高音（旋律）
+      // 左手取最低音（根音）作为代表，但保留声部全部音高
       if (leftGroup.length > 0) {
         const p = leftGroup[0].pitch
-        voiceNotes.push({ tick, pitch: p, voice: 'left' })
+        voiceNotes.push({ tick, pitch: p, chordPitches: leftGroup.map(n => n.pitch), voice: 'left' })
         lastLeft = p
       }
+      // 右手取最高音（旋律）作为代表，但保留声部全部音高
       if (rightGroup.length > 0) {
         const p = rightGroup.at(-1)!.pitch
-        voiceNotes.push({ tick, pitch: p, voice: 'right' })
+        voiceNotes.push({ tick, pitch: p, chordPitches: rightGroup.map(n => n.pitch), voice: 'right' })
         lastRight = p
       }
     }
@@ -212,6 +214,7 @@ function buildEnsemble(notes: RawNote[], tps: number, bpm: number): ChartData {
     time: n.tick / tps + START_OFFSET,
     lane: pitchToLane(n.pitch, n.voice),
     pitch: n.pitch,
+    chordPitches: n.chordPitches,
   }))
 
   chartNotes.sort((a, b) => a.time - b.time)

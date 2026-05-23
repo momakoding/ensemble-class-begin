@@ -222,7 +222,9 @@ export class RhythmScene extends Phaser.Scene {
       this.combo++
       this.score += isPerfect ? RHYTHM.SCORE_PERFECT : RHYTHM.SCORE_GOOD
       this.showJudge(isPerfect ? 'PERFECT' : 'GOOD')
-      playNote(candidate.data.pitch, this.getWaveform(chart, now))
+      for (const p of candidate.data.chordPitches) {
+        playNote(p, this.getWaveform(chart, now))
+      }
       eventBus.emit(EVENT_KEYS.RHYTHM_HIT, { judge: isPerfect ? 'perfect' : 'good', combo: this.combo })
       eventBus.emit(EVENT_KEYS.RHYTHM_SCORE, this.score)
     }
