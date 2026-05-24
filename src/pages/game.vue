@@ -21,7 +21,8 @@
       </div>
     </Transition>
 
-    <button v-if="!isPaused" class="game-page__pause-trigger" @click="pauseGame">⏸ 暂停</button>
+    <button v-if="!isPaused" class="game-page__pause-trigger" @click="pauseGame" @contextmenu.prevent="showEnsembleEntry = !showEnsembleEntry">⏸ 暂停</button>
+    <button v-if="showEnsembleEntry && !isPaused" class="game-page__ensemble-entry-btn" @click="jumpToEnsemble">⚡ 合奏</button>
   </div>
 </template>
 
@@ -30,7 +31,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import {
   BootScene, ClassroomScene, DialogueScene,
   RhythmScene, BossScene, EndingScene,
-  EVENT_KEYS,
+  EVENT_KEYS, SCENE_KEYS,
 } from '@/contents'
 import { useEventBus, useGame } from '@/runtime'
 import { useCharts } from '@/contents/composables/useCharts'
@@ -41,6 +42,7 @@ const eventBus = useEventBus()
 const game = useGame()
 
 const isPaused = ref(false)
+const showEnsembleEntry = ref(false)
 const score = ref(0)
 const combo = ref(0)
 const kidProgress = ref('')
@@ -55,6 +57,11 @@ const pauseGame = () => {
 const resumeGame = () => {
   isPaused.value = false
   eventBus.emit(EVENT_KEYS.GAME_RESUME)
+}
+
+const jumpToEnsemble = () => {
+  showEnsembleEntry.value = false
+  game.switchToScene(SCENE_KEYS.BOSS, { chartKey: 'ensemble', kidId: 'huimi', isBoss: true })
 }
 
 const returnToClassroom = () => {
@@ -167,6 +174,10 @@ onUnmounted(() => {
 
 .game-page__pause-trigger {
   @apply absolute top-4 left-8 z-10 rounded-lg bg-bg-surface px-5 py-2.5 text-base font-semibold text-text-primary shadow-md transition hover:bg-bg-overlay hover:text-text-bright;
+}
+
+.game-page__ensemble-entry-btn {
+  @apply absolute top-4 left-36 z-10 rounded-lg bg-accent/80 px-4 py-2.5 text-sm font-semibold text-text-dark shadow-md transition hover:bg-accent active:scale-95;
 }
 
 .fade-enter-active,
