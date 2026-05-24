@@ -7,6 +7,7 @@ export interface NoteData {
   lane: 0 | 1 | 2 | 3
   pitch: number
   chordPitches: number[]
+  duration: number  // seconds, from MIDI note-on to note-off
 }
 
 export interface ChartData {
@@ -36,6 +37,7 @@ function readVlq(data: Uint8Array, pos: number): [number, number] {
 interface RawNote {
   pitch: number
   startTick: number
+  endTick: number
 }
 
 interface ParseResult {
@@ -101,13 +103,13 @@ function parseMidiBytes(buffer: ArrayBuffer): ParseResult {
             active.set(key, tick)
           } else {
             const st = active.get(key)
-            if (st !== undefined) { rawNotes.push({ pitch, startTick: st }); active.delete(key) }
+            if (st !== undefined) { rawNotes.push({ pitch, startTick: st, endTick: tick }); active.delete(key) }
           }
         } else if (type === 0x8) {
           const pitch = data[pos++]; pos++
           const key = (pitch << 4) | ch
           const st = active.get(key)
-          if (st !== undefined) { rawNotes.push({ pitch, startTick: st }); active.delete(key) }
+          if (st !== undefined) { rawNotes.push({ pitch, startTick: st, endTick: tick }); active.delete(key) }
         } else if (type === 0xa || type === 0xb || type === 0xe) {
           pos += 2
         } else if (type === 0xc || type === 0xd) {
@@ -132,7 +134,7 @@ function buildSingleVoice(notes: RawNote[], tps: number, bpm: number, waveform: 
   const chartNotes: NoteData[] = notes.map(raw => {
     const rank = unique.indexOf(raw.pitch)
     const lane = Math.min(3, Math.floor((rank / n) * 4)) as 0 | 1 | 2 | 3
-    return { time: raw.startTick / tps + START_OFFSET, lane, pitch: raw.pitch, chordPitches: [raw.pitch] }
+    return { time: raw.startTick / tps + START_OFFSET, lane, pitch: raw.pitch, chordPitches: [raw.pitch], duration: (raw.endTick - raw.startTick) / tps }
   })
   const last = chartNotes.at(-1)
   return { bpm, duration: last ? last.time + 2 : 30, waveform, notes: chartNotes }
@@ -156,7 +158,7 @@ function buildEnsemble(notes: RawNote[], tps: number, bpm: number): ChartData {
     groups.set(note.startTick, g)
   }
 
-  type VoiceNote = { tick: number; pitch: number; chordPitches: number[]; voice: 'left' | 'right' }
+  type VoiceNote = { tick: number; pitch: number; chordPitches: number[]; voice: 'left' | 'right'; duration: number }
   const voiceNotes: VoiceNote[] = []
 
   // 追踪各手最近一次音高，用于单音归手判断
@@ -166,11 +168,13 @@ function buildEnsemble(notes: RawNote[], tps: number, bpm: number): ChartData {
   for (const [tick, group] of groups) {
     const asc = [...group].sort((a, b) => a.pitch - b.pitch)
 
+    const minDur = (g: RawNote[]) => Math.min(...g.map(n => n.endTick - n.startTick)) / tps
+
     if (asc.length === 1) {
       // 单音：归入音高差更小的那只手
       const p = asc[0].pitch
       const voice = Math.abs(p - lastRight) <= Math.abs(p - lastLeft) ? 'right' : 'left'
-      voiceNotes.push({ tick, pitch: p, chordPitches: [p], voice })
+      voiceNotes.push({ tick, pitch: p, chordPitches: [p], voice, duration: minDur(asc) })
       if (voice === 'right') lastRight = p; else lastLeft = p
     } else {
       // 多音：找最大相邻音程缺口，缺口上方 = 右手，下方 = 左手
@@ -186,13 +190,13 @@ function buildEnsemble(notes: RawNote[], tps: number, bpm: number): ChartData {
       // 左手取最低音（根音）作为代表，但保留声部全部音高
       if (leftGroup.length > 0) {
         const p = leftGroup[0].pitch
-        voiceNotes.push({ tick, pitch: p, chordPitches: leftGroup.map(n => n.pitch), voice: 'left' })
+        voiceNotes.push({ tick, pitch: p, chordPitches: leftGroup.map(n => n.pitch), voice: 'left', duration: minDur(leftGroup) })
         lastLeft = p
       }
       // 右手取最高音（旋律）作为代表，但保留声部全部音高
       if (rightGroup.length > 0) {
         const p = rightGroup.at(-1)!.pitch
-        voiceNotes.push({ tick, pitch: p, chordPitches: rightGroup.map(n => n.pitch), voice: 'right' })
+        voiceNotes.push({ tick, pitch: p, chordPitches: rightGroup.map(n => n.pitch), voice: 'right', duration: minDur(rightGroup) })
         lastRight = p
       }
     }
@@ -215,6 +219,7 @@ function buildEnsemble(notes: RawNote[], tps: number, bpm: number): ChartData {
     lane: pitchToLane(n.pitch, n.voice),
     pitch: n.pitch,
     chordPitches: n.chordPitches,
+    duration: n.duration,
   }))
 
   chartNotes.sort((a, b) => a.time - b.time)
