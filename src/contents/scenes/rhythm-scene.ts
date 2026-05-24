@@ -5,7 +5,7 @@ import { getChart } from '../composables/useCharts'
 import type { NoteData, ChartData } from '../composables/useCharts'
 import { KIDS } from '../data/kids'
 import type { KidId } from '../data/kids'
-import { playNote } from '../audio/synth'
+import { playNote, releaseNotes } from '../audio/synth'
 import { useEventBus } from '@/runtime'
 
 const eventBus = useEventBus()
@@ -222,8 +222,10 @@ export class RhythmScene extends Phaser.Scene {
       this.combo++
       this.score += isPerfect ? RHYTHM.SCORE_PERFECT : RHYTHM.SCORE_GOOD
       this.showJudge(isPerfect ? 'PERFECT' : 'GOOD')
+      const voice = candidate.data.lane < 2 ? 'left' : 'right'
+      releaseNotes(voice)
       for (const p of candidate.data.chordPitches) {
-        playNote(p, this.getWaveform(chart, now))
+        playNote(p, this.getWaveform(chart, now), candidate.data.duration, voice)
       }
       eventBus.emit(EVENT_KEYS.RHYTHM_HIT, { judge: isPerfect ? 'perfect' : 'good', combo: this.combo })
       eventBus.emit(EVENT_KEYS.RHYTHM_SCORE, this.score)
